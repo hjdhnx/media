@@ -13,7 +13,9 @@
 // limitations under the License.
 import java.util.Properties
 
-plugins { id("media3.android-library") }
+plugins { id("media3.android-library")
+
+  id("media3.publish") }
 
 val nativeDependencies =
   Properties().apply {
