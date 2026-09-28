@@ -2143,6 +2143,24 @@ class VideoSurfaceRenderer::Impl {
       }
     }
 
+    // Flutter SurfaceProducer 的 ANativeWindow 默认 buffer 尺寸为 1x1（新 Texture
+    // 机制不再自动匹配 widget 尺寸，producer 负责协商——MediaCodec 硬解即自行
+    // set_buffers_dimensions）。按帧尺寸（旋转换算后）协商 buffer，否则
+    // eglQuerySurface 恒 1x1：每帧只画一个像素放大全屏成纯色闪屏（实锤）。
+    const bool rotated = rotation_degrees == 90 || rotation_degrees == 270;
+    const int buffer_width = rotated ? frame->height : frame->width;
+    const int buffer_height = rotated ? frame->width : frame->height;
+    if (buffer_width > 0 && buffer_height > 0 &&
+        (ANativeWindow_getWidth(native_window_) != buffer_width ||
+         ANativeWindow_getHeight(native_window_) != buffer_height) &&
+        ANativeWindow_setBuffersGeometry(
+            native_window_, buffer_width, buffer_height,
+            ANativeWindow_getFormat(native_window_)) != 0) {
+      LOGE("Failed to resize GLES native window to %dx%d.", buffer_width,
+           buffer_height);
+      return false;
+    }
+
     EGLint width = 0;
     EGLint height = 0;
     if (eglQuerySurface(egl_display_, egl_surface_, EGL_WIDTH, &width) !=
