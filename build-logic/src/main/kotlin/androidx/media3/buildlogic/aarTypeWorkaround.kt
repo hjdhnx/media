@@ -32,6 +32,8 @@ fun addMissingAarTypeToXml(xml: XmlProvider) {
       "com.github.philburk:jsyn",
       "com.google.guava:guava",
       "com.google.truth:truth",
+      "com.googlecode.juniversalchardet:juniversalchardet",
+      "com.hierynomus:smbj",
       "com.squareup.okhttp3:mockwebserver",
       "com.squareup.okhttp3:okhttp",
       "io.ktor:ktor-client-android",
