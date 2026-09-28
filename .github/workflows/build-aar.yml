@@ -1,0 +1,58 @@
+name: Build media3 fongmi AARs (maven repo)
+
+# 产出 androidx.media3 group 的 maven 布局仓库（tar.gz artifact），
+# 供 DsPlayer third_party/video_player_android 以本地 maven repo 优先消费。
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install NDK
+        run: |
+          echo "y" | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;29.0.14206865" > /dev/null
+          ls "$ANDROID_HOME/ndk" 2>/dev/null || true
+
+      - name: Publish media3 modules to local maven repo
+        run: |
+          ./gradlew \
+            -PmavenRepo="$GITHUB_WORKSPACE/maven-repo" \
+            --no-daemon \
+            :libraries:common:publish \
+            :libraries:container:publish \
+            :libraries:database:publish \
+            :libraries:datasource:publish \
+            :libraries:datasource_okhttp:publish \
+            :libraries:decoder:publish \
+            :libraries:decoder_ffmpeg:publish \
+            :libraries:extractor:publish \
+            :libraries:exoplayer:publish \
+            :libraries:exoplayer_dash:publish \
+            :libraries:exoplayer_hls:publish \
+            :libraries:exoplayer_rtsp:publish \
+            :libraries:exoplayer_smoothstreaming:publish \
+            --stacktrace
+
+      - name: List repo contents
+        run: find "$GITHUB_WORKSPACE/maven-repo" -name "*.aar" -o -name "*.pom" | sort
+
+      - name: Pack repo
+        run: tar czf media3-fongmi-mavenrepo.tar.gz -C "$GITHUB_WORKSPACE" maven-repo
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: media3-fongmi-mavenrepo
+          path: media3-fongmi-mavenrepo.tar.gz
+          retention-days: 30
+          if-no-files-found: error
