@@ -4,6 +4,18 @@ name: Build media3 fongmi AARs (maven repo)
 # 供 DsPlayer third_party/video_player_android 以本地 maven repo 优先消费。
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        description: '构建成功后发布 Release'
+        type: boolean
+        default: true
+      tag:
+        description: 'Release tag（留空自动 mavenrepo-日期-sha）'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -48,6 +60,28 @@ jobs:
 
       - name: Pack repo
         run: tar czf media3-fongmi-mavenrepo.tar.gz -C "$GITHUB_WORKSPACE" maven-repo
+
+      - name: Resolve release tag
+        if: ${{ github.event.inputs.release == 'true' }}
+        env:
+          TAG_INPUT: ${{ github.event.inputs.tag }}
+        run: |
+          TAG="$TAG_INPUT"
+          [ -n "$TAG" ] || TAG="mavenrepo-$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)"
+          echo "TAG_NAME=$TAG" >> "$GITHUB_ENV"
+
+      - name: Publish Release
+        if: ${{ github.event.inputs.release == 'true' }}
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          make_latest: "true"
+          body: |
+            media3 fongmi fork 本地 maven 仓（androidx.media3 全模块 AAR，1.11.0-fongmi）
+            - 源码 commit：${{ github.sha }}
+            - 用法：解压 tar.gz，把 maven-repo/ 作为本地 maven 目录消费（DsPlayer third_party/media3-fongmi-repo 即此产物）
+          files: media3-fongmi-mavenrepo.tar.gz
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
