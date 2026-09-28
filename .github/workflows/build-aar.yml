@@ -28,19 +28,19 @@ jobs:
           ./gradlew \
             -PmavenRepo="$GITHUB_WORKSPACE/maven-repo" \
             --no-daemon \
-            :common:publish \
-            :container:publish \
-            :database:publish \
-            :datasource:publish \
-            :datasource_okhttp:publish \
-            :decoder:publish \
-            :decoder_ffmpeg:publish \
-            :extractor:publish \
-            :exoplayer:publish \
-            :exoplayer_dash:publish \
-            :exoplayer_hls:publish \
-            :exoplayer_rtsp:publish \
-            :exoplayer_smoothstreaming:publish \
+            :lib-common:publish \
+            :lib-container:publish \
+            :lib-database:publish \
+            :lib-datasource:publish \
+            :lib-datasource-okhttp:publish \
+            :lib-decoder:publish \
+            :lib-decoder-ffmpeg:publish \
+            :lib-extractor:publish \
+            :lib-exoplayer:publish \
+            :lib-exoplayer-dash:publish \
+            :lib-exoplayer-hls:publish \
+            :lib-exoplayer-rtsp:publish \
+            :lib-exoplayer-smoothstreaming:publish \
             --stacktrace
 
       - name: List repo contents
